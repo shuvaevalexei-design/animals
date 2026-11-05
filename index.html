@@ -277,18 +277,23 @@
         speakBtn.style.opacity = '1';
         currentAudio = null;
       };
-      currentAudio.onerror = function() {
+      function fallbackSpeak() {
         speakBtn.textContent = '🔊 Послушать слово';
         speakBtn.style.opacity = '1';
         if (window.speechSynthesis) {
+          speechSynthesis.cancel();
           const u = new SpeechSynthesisUtterance(text);
           u.lang = 'zh-CN'; u.rate = 0.85;
           speechSynthesis.speak(u);
         }
+      }
+      currentAudio.onerror = function() {
+        console.warn('Audio error', currentAudio && currentAudio.error);
+        fallbackSpeak();
       };
-      currentAudio.play().catch(function() {
-        speakBtn.textContent = '🔊 Послушать слово';
-        speakBtn.style.opacity = '1';
+      currentAudio.play().catch(function(err) {
+        console.warn('Audio play() rejected:', err && err.name, err && err.message);
+        fallbackSpeak();
       });
     }
 
